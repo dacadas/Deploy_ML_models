@@ -296,6 +296,8 @@ data[cat_vars].nunique().sort_values(ascending=False).plot.bar(figsize=(12,5))
     de la casa, como por ejemplo el garaje, la cerca o la cocina. Sustituiré estas
     categorías por números que aumentan en función de la calidad del espacio o de
     la estancia.'''
+# hacer una transformacion por valores conocidos para determinar calidad (visualmente) 
+# es una buena opcion        
 qual_mappings = {'Po': 1, 'Fa': 2, 'TA': 3, 'Gd': 4, 'Ex': 5, 'Missing': 0, 'NA': 0}
 
 qual_vars = ['ExterQual', 'ExterCond', 'BsmtQual', 'BsmtCond',
@@ -331,10 +333,38 @@ for var in qual_vars:
     # add data points to boxplot with stripplot
     sns.stripplot(x=var, y='SalePrice', data=data, jitter=0.1, alpha=0.3, color='k')
     plt.show()
+        
     
-    
-cat_others = [
-    var for var in cat_vars if var not in qual_vars
-]
+## labels q raramente aparecen -- pueden perjudicar el modelo
+cat_others = [    var for var in cat_vars if var not in qual_vars ]
 
-len(cat_others)     
+def analyse_rare_labels(df, var, rare_perc):
+    df = df.copy()
+
+    # determine the % of observations per category
+    tmp = df.groupby(var)['SalePrice'].count() / len(df)
+
+    # return categories that are rare
+    return tmp[tmp < rare_perc]
+
+# print categories that are present in less than
+# 1 % of the observations
+for var in cat_others:
+    print(analyse_rare_labels(data, var, 0.01))
+    print()
+    
+    
+# Algunas de las variables categóricas muestran múltiples etiquetas que están 
+# presentes en menos del 1% de las casas.
+# Las etiquetas que están subrepresentadas en el conjunto de datos tienden a 
+# causar un ajuste excesivo de los modelos de aprendizaje automático.
+# Por eso queremos eliminarlos.
+
+# plotar y analisar
+for var in cat_others:
+    # make boxplot with Catplot
+    sns.catplot(x=var, y='SalePrice', data=data, kind="box", height=4, aspect=1.5)
+    # add data points to boxplot with stripplot
+    sns.stripplot(x=var, y='SalePrice', data=data, jitter=0.1, alpha=0.3, color='k')
+    plt.show()
+

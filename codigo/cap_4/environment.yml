@@ -1,0 +1,19 @@
+name: curso_dmlm
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - numpy>=1.22,<2.0
+  - pandas>=1.5,<2.1
+  - scipy>=1.10
+  - scikit-learn>=1.2
+  - matplotlib>=3.7
+  - seaborn>=0.12
+  - statsmodels>=0.14
+  - joblib>=1.2
+  - spyder>=5.4
+  - spyder-kernels>=2.4
+  - ipython
+  - pip
+  - pip:
+    - feature-engine>=1.6

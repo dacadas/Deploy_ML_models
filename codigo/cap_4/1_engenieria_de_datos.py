@@ -29,7 +29,7 @@ def criar_pasta(path):
     
     
 # Para fins de reprodutibilidade
-semilla  = 13
+semilla  = 42
 np.random.seed( semilla )
 random.seed(semilla) 
 

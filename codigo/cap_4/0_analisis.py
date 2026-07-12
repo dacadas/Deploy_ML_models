@@ -1,42 +1,42 @@
-# to handle datasets
+# Para manipular datasets
 import pandas as pd
 import numpy as np
 
-# for plotting
+# Para plotagem de gráficos
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# for the yeo-johnson transformation
+# Para a transformação Yeo-Johnson
 import scipy.stats as stats
 
-# to display all the columns of the dataframe in the notebook
+# Para exibir todas as colunas do dataframe no notebook
 pd.pandas.set_option('display.max_columns', None)
 
 
 
-#### cargar dataset
+#### Carregar o dataset
 path_data = 'D:/Diego/Curso Udemy/Deploy_ML_models/dataset/'
 
 data = pd.read_csv(path_data + 'train.csv')
 print(data.shape)
 
 
-## Elimina columna ID que no dice nada
+## Elimina a coluna ID que não traz informação
 data.drop('Id', axis=1, inplace=True)
 
-# hay 79 variables y una de precio (80 columnas)
+# Há 79 variáveis e uma de preço (80 colunas)
 
 
 ###############################################################################
-####            Exploracion de datos
+####            Exploração de dados
 ###############################################################################    
-# ### a) variable objetivo -- verificar tipo de distribucion
+# ### a) Variável alvo -- verificar tipo de distribuição
 # data['SalePrice'].hist(bins=50, density=True)
 # plt.ylabel('Number of houses')
 # plt.xlabel('Sale Price')
 # plt.show()
 
-# # como tiene una distribucion sqwe, transformaremos en log para gaussiana
+# # Como tem uma distribuição assimétrica (skewed), transformaremos em log para torná-la gaussiana
 # np.log(data['SalePrice']).hist(bins=50, density=True)
 # plt.ylabel('Number of houses')
 # plt.xlabel('Log of Sale Price')
@@ -45,25 +45,25 @@ data.drop('Id', axis=1, inplace=True)
 
 
 ###############################################################################    
-### b) identificar tipo de variables
-## b.1) categoricas?
+### b) Identificar tipo de variáveis
+## b.1) Categóricas?
 cat_vars = [var for var in data.columns if data[var].dtype == 'O']
 
-# lets add MSSubClass to the list of categorical variables
+# Vamos adicionar MSSubClass à lista de variáveis categóricas
 cat_vars = cat_vars + ['MSSubClass']
 
-# dejar todas llas variables categoricas como objetos
+# Deixar todas as variáveis categóricas como objetos (Object)
 data[cat_vars] = data[cat_vars].astype('O')
 
-## b.2) numericas?
+## b.2) Numéricas?
 num_vars = [var for var in data.columns if var not in cat_vars and var != 'SalePrice']
 
 ###############################################################################    
-### c) Que hacer con dados perdidos? missing values
-# identificar el porcetanje de valores perdidos
+### c) O que fazer com dados faltantes? (Missing values)
+# Identificar a porcentagem de valores faltantes
 vars_with_na = [var for var in data.columns if data[var].isnull().sum() > 0]
 data[vars_with_na].isnull().mean().sort_values(ascending=False)
-# plot
+# Gráfico
 data[vars_with_na].isnull().mean().sort_values(
     ascending=False).plot.bar(figsize=(10, 4))
 plt.ylabel('Percentage of missing data')
@@ -72,54 +72,54 @@ plt.axhline(y=0.80, color='g', linestyle='-')
 plt.show()
 
 
-## c.1) separar quales categoricas e cuales numericas tienen missing information
+## c.1) Separar quais categóricas e quais numéricas têm informações faltantes
 cat_na = [var for var in cat_vars if var in vars_with_na]
 num_na = [var for var in num_vars if var in vars_with_na]
 
 print('N de var. categoricas con nan: ', len(cat_na))
 print('N de var. numericas con na: ', len(num_na))
 
-## c.2) antes de tomar qualquer decision en relacion a las variables con datos 
-#       faltantes, es necesario encontrar la relacion de ellas con la variable a ser predita
+## c.2) Antes de tomar qualquer decisão em relação às variáveis com dados 
+#       faltantes, é necessário encontrar a relação delas com a variável a ser predita
 def analyse_na_value(df, var):
     df = df.copy()
-    # observation was missing or 0 otherwise
+    # Observação estava faltando (1) ou não (0)
     df[var] = np.where(df[var].isnull(), 1, 0)
 
-    # let's compare the median SalePrice in the observations where data is missing
-    # vs the observations where data is available
+    # Vamos comparar a mediana do SalePrice nas observações onde o dado está faltando
+    # vs as observações onde o dado está disponível
 
-    # determine the median price in the groups 1 and 0,
-    # and the standard deviation of the sale price,
-    # and we capture the results in a temporary dataset
+    # Determina o preço médio/mediana nos grupos 1 e 0,
+    # e o desvio padrão do preço de venda,
+    # e capturamos os resultados em um dataset temporário
     tmp = df.groupby(var)['SalePrice'].agg(['mean', 'std'])
 
-    # plot into a bar graph
+    # Plota em um gráfico de barras
     tmp.plot(kind="barh", y="mean", legend=False,
              xerr="std", title="Sale Price", color='green')
 
     plt.show()
 
-''' En algunas variables, el precio de venta promedio de las casas para las que
-    falta información difiere del precio de venta promedio de aquellas para las 
-    que sí existe información.
-    Esto sugiere que la ausencia de datos podría ser un buen predictor del 
-    precio de venta.
+''' Em algumas variáveis, el preço médio de venda das casas para as quais
+    falta informação difere do preço médio de venda daquelas para as 
+    quais existe informação.
+    Isso sugere que a ausência de dados pode ser um bom preditor do 
+    preço de venda.
 '''
 for var in vars_with_na:
     analyse_na_value(data, var)
     
 ###############################################################################    
-### d) analisar variables numericas
+### d) Analisar variáveis numéricas
 
 ##########################################
-## d.1)temporales?
+## d.1) Temporais?
 year_vars = [var for var in num_vars if 'Yr' in var or 'Year' in var]    
 for var in year_vars:
     print(var, data[var].unique())
     print()
     
-# Agrupar variables temporales y ver comportamiento
+# Agrupar variáveis temporais e ver o comportamento
 data.groupby('YrSold')['SalePrice'].median().plot()
 plt.ylabel('Median House Price')
 
@@ -132,11 +132,11 @@ plt.ylabel('Median House Price')
 data.groupby('GarageYrBlt')['SalePrice'].median().plot()
 plt.ylabel('Median House Price')
 
-# criar uma função que relacione essas variaveis temporais para tirar conclusões abrangentes
+# Criar uma função que relacione essas variáveis temporais para tirar conclusões abrangentes
 def analyse_year_vars(df, var):    
     df = df.copy()    
-    # capture difference between a year variable and year
-    # in which the house was sold
+    # Captura a diferença entre uma variável de ano e o ano
+    # em que a casa foi vendida
     df[var] = df['YrSold'] - df[var]
     
     df.groupby('YrSold')[var].median().plot()
@@ -147,12 +147,12 @@ for var in year_vars:
     if var !='YrSold':
         analyse_year_vars(data, var)
 
-## ver tendencia variavel predida vs var tempo
+## Ver a tendência da variável predita vs variável de tempo
 def analyse_year_vars(df, var):
     
     df = df.copy()    
-    # capture difference between a year variable and year
-    # in which the house was sold
+    # Captura a diferença entre uma variável de ano e o ano
+    # em que a casa foi vendida
     df[var] = df['YrSold'] - df[var]
     
     plt.scatter(df[var], df['SalePrice'])
@@ -165,35 +165,35 @@ for var in year_vars:
         analyse_year_vars(data, var)
         
 ##########################################
-## d.2) discretas     
+## d.2) Discretas     
 discrete_vars = [var for var in num_vars if len(data[var].unique()) < 20 and var not in year_vars]
 print('Number of discrete variables: ', len(discrete_vars))   
 
-## plotar relaciones de 'categorias' vs variable a ser predita
+## Plotar relações de 'categorias' vs variável a ser predita
 for var in discrete_vars:
-    # make boxplot with Catplot
+    # Faz o boxplot com Catplot
     sns.catplot(x=var, y='SalePrice', data=data, kind="box", height=4, aspect=1.5)
-    # add data points to boxplot with stripplot
+    # Adiciona os pontos de dados ao boxplot com stripplot
     sns.stripplot(x=var, y='SalePrice', data=data, jitter=0.1, alpha=0.3, color='k')
     plt.show()
     
 ##########################################
-## d3) continuas     
+## d.3) Contínuas     
 cont_vars = [ var for var in num_vars if var not in discrete_vars+year_vars]
 
-## plotar relaciones de continuas histograma vs variable a ser predita
+## Plotar relações de contínuas (histograma vs variável a ser predita)
 data[cont_vars].hist(bins=40, figsize=(15,15))
 plt.show()
 
-## separar variables muy asimetricas (identificadas en paso anterior)
+## Separar variáveis muito assimétricas (identificadas no passo anterior)
 skewed = [ 'BsmtFinSF2', 'LowQualFinSF', 'EnclosedPorch',
           '3SsnPorch', 'ScreenPorch', 'MiscVal']
 
 cont_vars = [ 'LotFrontage',    'LotArea',    'MasVnrArea',    'BsmtFinSF1',
                 'BsmtUnfSF',    'TotalBsmtSF',    '1stFlrSF',    '2ndFlrSF',
                 'GrLivArea',    'GarageArea',    'WoodDeckSF',    'OpenPorchSF',]
-# aplicar transformacion YEo-Jonshon e plotar para posterior analisi
-# temporary copy of the data
+# Aplicar transformação Yeo-Johnson e plotar para posterior análise
+# Cópia temporária dos dados
 tmp = data.copy()
 
 tmp[cont_vars] = tmp[cont_vars].astype('float64')
@@ -208,23 +208,23 @@ for var in cont_vars:
         # Aloca os valores transformados de volta nas posições corretas
         tmp.loc[valid_data.index, var] = transformed
     
-# plot the histograms of the transformed variables
+# Plota os histogramas das variáveis transformadas
 tmp[cont_vars].hist(bins=30, figsize=(15,15))
 plt.show()
 
-# no garantiza, por eso hay que analizar y separar las var que tienen una distribucion mas parecida a gaussiana
-## plotar relacion de variables antes y despues de la transf con var_predita
+# Não garante, por isso é preciso analisar e separar as variáveis que têm uma distribuição mais parecida com a gaussiana
+## Plotar relação das variáveis antes e depois da transformação com a variável predita
 for var in cont_vars:
     
     plt.figure(figsize=(12,4))
     
-    # plot the original variable vs sale price    
+    # Plota a variável original vs o preço de venda    
     plt.subplot(1, 2, 1)
     plt.scatter(data[var], np.log(data['SalePrice']))
     plt.ylabel('Sale Price')
     plt.xlabel('Original ' + var)
 
-    # plot transformed variable vs sale price
+    # Plota a variável transformada vs o preço de venda
     plt.subplot(1, 2, 2)
     plt.scatter(tmp[var], np.log(tmp['SalePrice']))
     plt.ylabel('Sale Price')
@@ -232,10 +232,10 @@ for var in cont_vars:
                 
     plt.show()
    
-## antes de aplicar transformaciones que utilicen logaritmos, verificar valor zero
+## Antes de aplicar transformações que utilizem logaritmos, verificar valor zero
 tmp = data.copy()
 for var in ["LotFrontage", "1stFlrSF", "GrLivArea"]:
-    # transform the variable with logarithm
+    # Transforma a variável com logaritmo
     tmp[var] = np.log(data[var])
     
 tmp[["LotFrontage", "1stFlrSF", "GrLivArea"]].hist(bins=30)
@@ -245,13 +245,13 @@ for var in ["LotFrontage", "1stFlrSF", "GrLivArea"]:
     
     plt.figure(figsize=(12,4))
     
-    # plot the original variable vs sale price    
+    # Plota a variável original vs o preço de venda    
     plt.subplot(1, 2, 1)
     plt.scatter(data[var], np.log(data['SalePrice']))
     plt.ylabel('Sale Price')
     plt.xlabel('Original ' + var)
 
-    # plot transformed variable vs sale price
+    # Plota a variável transformada vs o preço de venda
     plt.subplot(1, 2, 2)
     plt.scatter(tmp[var], np.log(tmp['SalePrice']))
     plt.ylabel('Sale Price')
@@ -260,44 +260,44 @@ for var in ["LotFrontage", "1stFlrSF", "GrLivArea"]:
     plt.show()
 
 
-## y las que son cons ditribucion tipo railegh (skewed)??
-# transforma a binarias y verificar la tendencia de la variable pretia
+## E as que possuem distribuição tipo Rayleigh (assimétricas)?
+# Transforma em binárias e verifica a tendência da variável predita
 for var in skewed:
     
     tmp = data.copy()
     
-    # map the variable values into 0 and 1
+    # Mapeia os valores da variável em 0 e 1
     tmp[var] = np.where(data[var]==0, 0, 1)
     
-    # determine mean sale price in the mapped values
+    # Determina o preço médio de venda nos valores mapeados
     tmp = tmp.groupby(var)['SalePrice'].agg(['mean', 'std'])
 
-    # plot into a bar graph
+    # Plota em um gráfico de barras
     tmp.plot(kind="barh", y="mean", legend=False,
              xerr="std", title="Sale Price", color='green')
 
     plt.show()
-''' Parece haber una diferencia en el precio de venta entre los valores mapeados,
- pero los intervalos de confianza se solapan; por tanto, lo más probable es
- que dicha diferencia no sea significativa ni predictiva.'''
+''' Parece haver uma diferença no preço de venda entre os valores mapeados,
+ mas os intervalos de confiança se sobrepõem; portanto, o mais provável é
+ que essa diferença não seja significativa nem preditiva.'''
  
  
  
 ##########################################
-## d.4) categoricas  
-## cardinalidad  (baja cardinalidad es pocos labels diferentes)
-# Evalúe cuántas categorías diferentes están presentes en cada una de las variables.
+## d.4) Categórias  
+## Cardinalidade (baixa cardinalidade significa poucos rótulos/labels diferentes)
+# Avalie quantas categorias diferentes estão presentes em cada uma de las variáveis.
 data[cat_vars].nunique().sort_values(ascending=False).plot.bar(figsize=(12,5))
 
-# como lidar con cardinalidad???
+# Como lidar com cardinalidade???
 
-## calidad de las variables
-''' Existen varias variables que hacen referencia a la calidad de algún aspecto 
-    de la casa, como por ejemplo el garaje, la cerca o la cocina. Sustituiré estas
-    categorías por números que aumentan en función de la calidad del espacio o de
-    la estancia.'''
-# hacer una transformacion por valores conocidos para determinar calidad (visualmente) 
-# es una buena opcion        
+## Qualidade das variáveis
+''' Existem várias variáveis que fazem referência à qualidade de algum aspecto 
+    da casa, como por exemplo a garagem, a cerca ou a cozinha. Substituirei estas
+    categorias por números que aumentam em função da qualidade do espaço ou do
+    cômodo.'''
+# Fazer uma transformação por valores conhecidos para determinar a qualidade (visualmente) 
+# é uma boa opção        
 qual_mappings = {'Po': 1, 'Fa': 2, 'TA': 3, 'Gd': 4, 'Ex': 5, 'Missing': 0, 'NA': 0}
 
 qual_vars = ['ExterQual', 'ExterCond', 'BsmtQual', 'BsmtCond',
@@ -328,43 +328,42 @@ qual_vars  = qual_vars + finish_vars + ['BsmtExposure','GarageFinish','Fence']
 
 
 for var in qual_vars:
-    # make boxplot with Catplot
+    # Faz o boxplot com Catplot
     sns.catplot(x=var, y='SalePrice', data=data, kind="box", height=4, aspect=1.5)
-    # add data points to boxplot with stripplot
+    # Adiciona os pontos de dados ao boxplot com stripplot
     sns.stripplot(x=var, y='SalePrice', data=data, jitter=0.1, alpha=0.3, color='k')
     plt.show()
         
     
-## labels q raramente aparecen -- pueden perjudicar el modelo
+## Labels que raramente aparecem -- podem prejudicar o modelo
 cat_others = [    var for var in cat_vars if var not in qual_vars ]
 
 def analyse_rare_labels(df, var, rare_perc):
     df = df.copy()
 
-    # determine the % of observations per category
+    # Determina a % de observações por categoria
     tmp = df.groupby(var)['SalePrice'].count() / len(df)
 
-    # return categories that are rare
+    # Retorna as categorias que são raras
     return tmp[tmp < rare_perc]
 
-# print categories that are present in less than
-# 1 % of the observations
+# Exibe as categorias que estão presentes em menos de
+# 1% das observações
 for var in cat_others:
     print(analyse_rare_labels(data, var, 0.01))
     print()
     
     
-# Algunas de las variables categóricas muestran múltiples etiquetas que están 
-# presentes en menos del 1% de las casas.
-# Las etiquetas que están subrepresentadas en el conjunto de datos tienden a 
-# causar un ajuste excesivo de los modelos de aprendizaje automático.
-# Por eso queremos eliminarlos.
+# Algumas das variáveis categóricas mostram múltiplas etiquetas que estão 
+# presentes em menos de 1% das casas.
+# As etiquetas que estão sub-representadas no conjunto de dados tendem a 
+# causar um ajuste excessivo (overfitting) dos modelos de aprendizado de máquina.
+# Por isso queremos eliminá-las.
 
-# plotar y analisar
+# Plotar e analisar
 for var in cat_others:
-    # make boxplot with Catplot
+    # Faz o boxplot com Catplot
     sns.catplot(x=var, y='SalePrice', data=data, kind="box", height=4, aspect=1.5)
-    # add data points to boxplot with stripplot
+    # Adiciona os pontos de dados ao boxplot com stripplot
     sns.stripplot(x=var, y='SalePrice', data=data, jitter=0.1, alpha=0.3, color='k')
     plt.show()
-

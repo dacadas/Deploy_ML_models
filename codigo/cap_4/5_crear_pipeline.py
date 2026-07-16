@@ -259,6 +259,12 @@ qual_vars  = qual_vars + finish_vars + ['BsmtExposure','GarageFinish','Fence']
 # (aquelas que não remapeamos)
 cat_others = [ var for var in cat_vars if var not in qual_vars ]
 
+
+# RareLabelEncoder so funciona con tipo object
+X_train['MSSubClass'] = X_train['MSSubClass'].astype('O')
+X_test['MSSubClass'] = X_test['MSSubClass'].astype('O')
+
+
 # configurar la clase
 rare_encoder = RareLabelEncoder(tol=0.01, n_categories=1, variables=cat_others)
 #  ajustar la clase al conjunto de entrenamiento
@@ -266,9 +272,60 @@ rare_encoder.fit(X_train)
 # La clase aprende y almacena los parametros
 rare_encoder.encoder_dict_
 
-
-
+# aplicar
 X_train = rare_encoder.transform(X_train)
 X_test = rare_encoder.transform(X_test)
 
+##################
+### e- Variáveis categóricas: converter strings para números
+# configurar la clase
+cat_encoder = OrdinalEncoder(encoding_method='ordered', variables=cat_others)
 
+#  ajustar la clase al conjunto de entrenamiento --> mappings
+cat_encoder.fit(X_train, y_train)
+
+# mappings son  almacenados
+cat_encoder.encoder_dict_
+
+# aplicar
+X_train = cat_encoder.transform(X_train)
+X_test = cat_encoder.transform(X_test)
+
+# Verifica a ausência de NA no conjunto de train
+# [var for var in X_train.columns if X_train[var].isnull().sum() > 0]
+
+
+# Analisar las variables
+def analyse_vars(train, y_train, var):
+    
+    # function plots median house sale price per encoded
+    # category
+    
+    tmp = pd.concat([X_train, np.log(y_train)], axis=1)
+    
+    tmp.groupby(var)['SalePrice'].median().plot.bar()
+    plt.title(var)
+    plt.ylim(2.2, 2.6)
+    plt.ylabel('SalePrice')
+    plt.show()
+    
+for var in cat_others:
+    analyse_vars(X_train, y_train, var)
+    
+##################
+### f- Colocar as variáveis em uma escala semelhante (modelos lineares)
+# Criar scaler
+scaler = MinMaxScaler()
+# Ajusta (fit) o scaler ao conjunto de treino
+scaler.fit(X_train)
+
+# Transforma o conjunto de treino e teste
+
+# O sklearn retorna arrays do numpy, então envolvemos o
+# array com um dataframe do pandas
+X_train = pd.DataFrame( scaler.transform(X_train),
+                        columns = X_train.columns  )
+
+X_test = pd.DataFrame(  scaler.transform(X_test),
+                        columns = X_train.columns  )
+ 

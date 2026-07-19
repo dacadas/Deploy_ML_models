@@ -273,7 +273,7 @@ print('train mse: {}'.format(int(
 print('train rmse: {}'.format(int(
     np.sqrt(mean_squared_error(np.exp(y_train), np.exp(pred_train))))))
 
-print('train r2: {}'.format(
+print('train r2: {}'.format( 
     r2_score(np.exp(y_train), np.exp(pred_train))))
 
 

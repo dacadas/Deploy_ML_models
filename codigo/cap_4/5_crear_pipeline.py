@@ -49,7 +49,7 @@ print(data.shape)
 
 
 ## Elimina a coluna ID que não traz informação
-data.drop('Id', axis=1, inplace=True)
+# data.drop('Id', axis=1, inplace=True)
 
 ###############################################################################
 ## Separa em conjunto de treinamento e teste

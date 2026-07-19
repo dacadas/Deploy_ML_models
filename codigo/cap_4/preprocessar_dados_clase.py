@@ -7,7 +7,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 # Transformer para calcular a diferença entre variáveis temporais
 class TemporalvariableTransformer( BaseEstimator , TransformerMixin):
     
-    # Inicializar clase
+    # Inicializa classe
     def __init__(self, variables, reference_variable):
         if not isinstance(variables,  list):
             raise ValueError('variables devem ser uma lista')
@@ -34,7 +34,7 @@ class TemporalvariableTransformer( BaseEstimator , TransformerMixin):
 # Transformer para recategorizar variáveis categóricas com um mapeamento predefinido
 class Mapper( BaseEstimator , TransformerMixin):   
     
-    # Inicializar clase
+    # Inicializa  classe
     def __init__(self, variables, mappings):
         if not isinstance(variables,  list):
             raise ValueError('variables devem ser uma lista')
@@ -47,7 +47,7 @@ class Mapper( BaseEstimator , TransformerMixin):
     def fit(self, X, y=None):
         return self
     
-    # Método transform custom -- asigna valor a variable --mapeada
+    # Método transform custom -- Aplica o mapeamento às variáveis especificadas
     def transform(self,X):
         # Cria uma cópia para não modificar o DataFrame original
         X = X.copy()
@@ -90,7 +90,7 @@ class MeanImputer(BaseEstimator, TransformerMixin):
 class RarelabelCategoricalEncoder(BaseEstimator, TransformerMixin):
 
     # Inicializa a classe
-    # tol: frequência mínima para que uma categoria não seja considerada rara
+    # tol: frequência mínima para que uma categoria NAO seja considerada rara
     def __init__(self, tol=0.05, variables=None):
         if not isinstance(variables, list):
             raise ValueError("variables deve ser uma lista")
@@ -124,3 +124,68 @@ class RarelabelCategoricalEncoder(BaseEstimator, TransformerMixin):
                                     "Rare"  )
 
         return X
+    
+#####################################################################
+# Transformer para codificar variáveis categóricas em valores numéricos   
+class CategoricalEncoder(BaseEstimator, TransformerMixin):
+
+    # Inicializa a classe
+    def __init__(self, variables=None):
+        if not isinstance(variables, list):
+            raise ValueError('variables deve ser uma lista')
+        
+        # Armazena as variáveis
+        self.variables = variables
+        
+    # Cria um mapeamento ordinal baseado na média da variável alvo
+    def fit(self, X, y):
+        # Combina os dados de entrada com a variável alvo
+        temp = pd.concat([X, y], axis=1)
+        temp.columns = list(X.columns) + ["target"]
+
+        # cria um diccionario para armazenar mapeamentos
+        self.encoder_dict_ = {}
+
+        for var in self.variables:
+            # Ordena as categorias pela média da variável alvo
+            t = temp.groupby([var])["target"].mean().sort_values(ascending=True).index
+            
+            # Atribui um código numérico para cada categoria
+            self.encoder_dict_[var] = {k: i for i, k in enumerate(t, 0)}
+
+        return self
+
+    def transform(self, X):
+        # Cria uma cópia para não modificar o DataFrame original
+        X = X.copy()
+            
+        # mapeia 
+        for feature in self.variables:
+            X[feature] = X[feature].map(self.encoder_dict_[feature])
+
+        return X    
+    
+    
+#####################################################################
+# coverte variaveis a tipo objeto
+class CastVariablesAsObject(BaseEstimator, TransformerMixin):
+    """
+    Converte variáveis para o tipo 'object'.
+
+    Útil quando algum transformer reconstrói o DataFrame e o pandas
+    volta a inferir tipos numéricos.
+    """
+
+    def __init__(self, variables):
+        self.variables = variables
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X):
+        X = X.copy()
+
+        for var in self.variables:
+            X[var] = X[var].astype("object")
+
+        return X    

@@ -42,6 +42,7 @@ import pandas as pd
 import numpy as np
 # to divide train and test set
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, roc_auc_score
 
 # feature scaling
 
@@ -152,3 +153,38 @@ surv_pipe = Pipeline([
     
 # train the pipeline
 surv_pipe.fit(X_train, y_train)
+
+pred_train = surv_pipe.predict(X_train)
+
+
+
+# Para Acurácia: Precisamos das predições de classe (0 ou 1)
+class_pred_train =  surv_pipe.predict(X_train)
+class_pred_test  =  surv_pipe.predict(X_test)
+
+# Para ROC-AUC: Precisamos das probabilidades da classe 1 (sobreviveu)
+prob_pred_train = surv_pipe.predict_proba(X_train)[:, 1]
+prob_pred_test  = surv_pipe.predict_proba(X_test)[:, 1]
+
+## Determine:
+#     - accuracy 
+#     - roc-auc 
+# Important, remember that to determine the accuracy, you need the outcome 0, 1
+# referring to survived or not. But to determine the roc-auc you need the 
+# probability of survival.
+
+auc_train =  accuracy_score( y_train, class_pred_train)
+roc_auc_score_train =  roc_auc_score( y_train, prob_pred_train)
+
+print('train auc: {}'.format((auc_train)))
+print('train roc_auc_score: {}'.format((roc_auc_score_train)))
+print()
+
+# test
+auc_test =  accuracy_score( y_test, class_pred_test)
+roc_auc_score_test =  roc_auc_score( y_test, prob_pred_test)
+
+print('test auc: {}'.format((roc_auc_score_test)))
+print('test roc_auc_score: {}'.format((roc_auc_score_test)))
+print()
+

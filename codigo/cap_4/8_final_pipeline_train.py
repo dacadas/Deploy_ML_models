@@ -1,3 +1,5 @@
+# %%%%%% importar dependencias
+
 # data manipulation and plotting
 import pandas as pd
 import numpy as np
@@ -36,6 +38,8 @@ from feature_engine.wrappers import SklearnTransformerWrapper
 
 import preprocessar_dados_clase as pp
 
+
+# %%%%%% Cargar datos
 # to visualise al the columns in the dataframe
 pd.pandas.set_option('display.max_columns', None)
 
@@ -58,6 +62,8 @@ data.drop('Id', axis=1, inplace=True)
 # Cast MSSubClass as object
 data['MSSubClass'] = data['MSSubClass'].astype('O')
 
+
+# %%%%%%  preparar datos train test
 ###############################################################################
 ## Separa em conjunto de treinamento e teste
 X_train, X_test, y_train, y_test = train_test_split( data.drop(['SalePrice'], axis=1), # Variáveis preditivas (X)
@@ -70,11 +76,11 @@ X_train, X_test, y_train, y_test = train_test_split( data.drop(['SalePrice'], ax
 y_train = np.log(y_train)
 y_test = np.log(y_test)
 
-
 for df in (X_train, X_test):
     df["MSSubClass"] = df["MSSubClass"].astype("object")
     
 
+# %%%%%% Configurar 
 #############################################################
 #### Engenharia de dados --
 
@@ -182,7 +188,7 @@ FEATURES = [
 X_train = X_train[FEATURES]
 X_test = X_test[FEATURES]
 
-
+# %%%%%% preprocessar pipeline
 # set up the pipeline
 price_pipe = Pipeline([
 
@@ -256,6 +262,8 @@ price_pipe = Pipeline([
 ])
 
 
+# %%%%%% Entrenar modelo
+
 # train the pipeline
 price_pipe.fit(X_train, y_train)
 
@@ -299,7 +307,7 @@ print('\nAverage house price: ', int(np.exp(y_train).median()))
 plt.figure()
 plt.scatter(y_test, price_pipe.predict(X_test))
 plt.xlabel('True House Price')
-plt.ylabel('Predicted House Price')
+plt.ylabel('Predicted Hou se Price')
 plt.title('Evaluation of Lasso Predictions')
 
 # let's evaluate the distribution of the errors: 
@@ -313,11 +321,13 @@ errors = y_test - preds
 errors.hist(bins=30)
 plt.show()
 
-
+# %%%%%% Persistence model
 
 # now let's save the scaler
 joblib.dump(price_pipe, path_data + 'price_pipe.joblib') 
 
+
+# %%%%%% Nuevos datos
 ##############################################################
 ##############################################################
 # Carregar novos dados

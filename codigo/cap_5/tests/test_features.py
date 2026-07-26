@@ -1,10 +1,10 @@
 from regression_model.config.core import config
-from regression_model.processing.features import TemporalVariableTransformer
+from regression_model.processing.features import TemporalvariableTransformer
 
 
 def test_temporal_variable_transformer(sample_input_data):
     # Given
-    transformer = TemporalVariableTransformer(
+    transformer = TemporalvariableTransformer(
         variables=config.model_settings.temporal_vars,  # YearRemodAdd
         reference_variable=config.model_settings.ref_var,
     )

@@ -20,6 +20,7 @@ def make_prediction(
 
     data = pd.DataFrame(input_data)
     validated_data, errors = validate_inputs(input_data=data)
+    
     results = {"predictions": None, "version": _version, "errors": errors}
 
     if not errors:
@@ -31,5 +32,25 @@ def make_prediction(
             "version": _version,
             "errors": errors,
         }
+        
+        
+        
+    # validated_data, errors = validate_inputs(input_data=data)
+
+    # print(validated_data["MSSubClass"].dtype)
+    # print(validated_data["MSSubClass"].head())
+    # print(type(validated_data["MSSubClass"].iloc[0]))
+    # # print("ERROS:")
+    # # print(errors)
+    
+    # if errors:
+    #     import json
+    #     # print(json.dumps(json.loads(errors), indent=2))
+    
+    # results = {
+    #     "predictions": None,
+    #     "version": _version,
+    #     "errors": errors,
+    # }    
 
     return results

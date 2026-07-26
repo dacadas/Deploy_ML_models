@@ -25,107 +25,87 @@ def drop_na_inputs(*, input_data: pd.DataFrame) -> pd.DataFrame:
 
 
 def validate_inputs(*, input_data: pd.DataFrame) -> Tuple[pd.DataFrame, Optional[dict]]:
-    """Check model inputs for unprocessable values."""
+    # """Check model inputs for unprocessable values."""
 
     # convert syntax error field names (beginning with numbers)
     input_data.rename(columns=config.model_settings.variables_to_rename, inplace=True)
-    input_data["MSSubClass"] = input_data["MSSubClass"].astype("O")
+    # input_data["MSSubClass"] = input_data["MSSubClass"].astype("O")
+    input_data["MSSubClass"] = input_data["MSSubClass"].astype(str)
     relevant_data = input_data[config.model_settings.features].copy()
     validated_data = drop_na_inputs(input_data=relevant_data)
     errors = None
 
-    try:
-        # replace numpy nans so that pydantic can validate
-        MultipleHouseDataInputs(
-            inputs=validated_data.replace({np.nan: None}).to_dict(orient="records")
-        )
-    except ValidationError as error:
-        errors = error.json()
+    
+    # # print("dtype:", validated_data["MSSubClass"].dtype)
+    # # print(validated_data["MSSubClass"].head())
+    # # print(type(validated_data["MSSubClass"].iloc[0]))
+    # # print(validated_data["MSSubClass"].iloc[0])
+    
+    # try:
+    #     # replace numpy nans so that pydantic can validate
+    #     MultipleHouseDataInputs(
+    #         inputs=validated_data.replace({np.nan: None}).to_dict(orient="records")
+    #     )
+    # except ValidationError as error:
+    #     errors = error.json()
 
+
+    records = validated_data.replace({np.nan: None}).to_dict(orient="records")
+    
+    # print("Primeiro registro:")
+    # print(records[0]["MSSubClass"])
+    # print(type(records[0]["MSSubClass"]))
+    
+    # print("Registro 1447:")
+    # print(records[1447]["MSSubClass"])
+    # print(type(records[1447]["MSSubClass"]))
+    
+    try:
+        MultipleHouseDataInputs(inputs=records)
+    except ValidationError as error:
+        print(error)
+        errors = error.json()
     return validated_data, errors
 
 
 class HouseDataInputSchema(BaseModel):
-    Alley: Optional[str]
-    BedroomAbvGr: Optional[int]
-    BldgType: Optional[str]
-    BsmtCond: Optional[str]
-    BsmtExposure: Optional[str]
-    BsmtFinSF1: Optional[float]
-    BsmtFinSF2: Optional[float]
-    BsmtFinType1: Optional[str]
-    BsmtFinType2: Optional[str]
-    BsmtFullBath: Optional[float]
-    BsmtHalfBath: Optional[float]
-    BsmtQual: Optional[str]
-    BsmtUnfSF: Optional[float]
-    CentralAir: Optional[str]
-    Condition1: Optional[str]
-    Condition2: Optional[str]
-    Electrical: Optional[str]
-    EnclosedPorch: Optional[int]
-    ExterCond: Optional[str]
-    ExterQual: Optional[str]
-    Exterior1st: Optional[str]
-    Exterior2nd: Optional[str]
-    Fence: Optional[str]
-    FireplaceQu: Optional[str]
-    Fireplaces: Optional[int]
-    Foundation: Optional[str]
-    FullBath: Optional[int]
-    Functional: Optional[str]
-    GarageArea: Optional[float]
-    GarageCars: Optional[float]
-    GarageCond: Optional[str]
-    GarageFinish: Optional[str]
-    GarageQual: Optional[str]
-    GarageType: Optional[str]
-    GarageYrBlt: Optional[float]
-    GrLivArea: Optional[int]
-    HalfBath: Optional[int]
-    Heating: Optional[str]
-    HeatingQC: Optional[str]
-    HouseStyle: Optional[str]
-    Id: Optional[int]
-    KitchenAbvGr: Optional[int]
-    KitchenQual: Optional[str]
-    LandContour: Optional[str]
-    LandSlope: Optional[str]
-    LotArea: Optional[int]
-    LotConfig: Optional[str]
-    LotFrontage: Optional[float]
-    LotShape: Optional[str]
-    LowQualFinSF: Optional[int]
-    MSSubClass: Optional[int]
-    MSZoning: Optional[str]
-    MasVnrArea: Optional[float]
-    MasVnrType: Optional[str]
-    MiscFeature: Optional[str]
-    MiscVal: Optional[int]
-    MoSold: Optional[int]
-    Neighborhood: Optional[str]
-    OpenPorchSF: Optional[int]
-    OverallCond: Optional[int]
-    OverallQual: Optional[int]
-    PavedDrive: Optional[str]
-    PoolArea: Optional[int]
-    PoolQC: Optional[str]
-    RoofMatl: Optional[str]
-    RoofStyle: Optional[str]
-    SaleCondition: Optional[str]
-    SaleType: Optional[str]
-    ScreenPorch: Optional[int]
-    Street: Optional[str]
-    TotRmsAbvGrd: Optional[int]
-    TotalBsmtSF: Optional[float]
-    Utilities: Optional[str]
-    WoodDeckSF: Optional[int]
-    YearBuilt: Optional[int]
-    YearRemodAdd: Optional[int]
-    YrSold: Optional[int]
-    FirstFlrSF: Optional[int]  # renamed
-    SecondFlrSF: Optional[int]  # renamed
-    ThreeSsnPortch: Optional[int]  # renamed
+    MSSubClass: str | None = None
+    MSZoning: str | None = None
+    LotFrontage: float | None = None
+    LotShape: str | None = None
+    LandContour: str | None = None
+    LotConfig: str | None = None
+    Neighborhood: str | None = None
+    OverallQual: int | None = None
+    OverallCond: int | None = None
+    YearRemodAdd: int | None = None
+    RoofStyle: str | None = None
+    Exterior1st: str | None = None
+    ExterQual: str | None = None
+    Foundation: str | None = None
+    BsmtQual: str | None = None
+    BsmtExposure: str | None = None
+    BsmtFinType1: str | None = None
+    HeatingQC: str | None = None
+    CentralAir: str | None = None
+    FirstFlrSF: int | None = None
+    SecondFlrSF: int | None = None
+    GrLivArea: int | None = None
+    BsmtFullBath: float | None = None
+    HalfBath: int | None = None
+    KitchenQual: str | None = None
+    TotRmsAbvGrd: int | None = None
+    Functional: str | None = None
+    Fireplaces: int | None = None
+    FireplaceQu: str | None = None
+    GarageFinish: str | None = None
+    GarageCars: float | None = None
+    GarageArea: float | None = None
+    PavedDrive: str | None = None
+    WoodDeckSF: int | None = None
+    ScreenPorch: int | None = None
+    SaleCondition: str | None = None
+    YrSold: int | None = None
 
 
 class MultipleHouseDataInputs(BaseModel):
